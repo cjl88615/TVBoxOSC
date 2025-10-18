@@ -20,6 +20,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-disabled: true
+          add-job-summary: false
 
       - name: Install Android SDK components
         uses: android-actions/setup-android@v3
