@@ -17,14 +17,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+          cache: gradle
 
       - name: Install Android SDK components
         uses: android-actions/setup-android@v3
         with:
           packages: |
+            cmdline-tools;latest
             platform-tools
             build-tools;34.0.0
             platforms;android-34
@@ -33,6 +32,8 @@ jobs:
         run: yes | sdkmanager --licenses
 
       - name: Build with Gradle
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --build-cache --parallel --no-daemon --warning-mode all
