@@ -1,31 +1,44 @@
-name: Test Build
+name: Build APK
 
 on:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Build With Gradle
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: gradle
+
+      - name: Install Android SDK components
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            build-tools;34.0.0
+            platforms;android-34
+
+      - name: Build with Gradle
         run: |
           chmod +x gradlew
-          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all
-      - name: Prepare App
+          ./gradlew assembleRelease --build-cache --parallel --no-daemon --warning-mode all
+
+      - name: Collect APKs
         run: |
-          mkdir -p ${{ github.workspace }}/apk/
-          for file in `find ~ -name "*.apk" -print`; do
-            mv "$file" ${{ github.workspace }}/apk/
-          done
-      - name: Upload App To Artifact
+          mkdir -p "${{ github.workspace }}/apk"
+          find app/build/outputs/apk -name "*.apk" -exec cp {} "${{ github.workspace }}/apk/" \;
+
+      - name: Upload APKs
         uses: actions/upload-artifact@v3
         with:
-          name: com.github.tvbox.osc
-          path: ${{ github.workspace }}/apk/*
+          name: tvbox-apks
+          path: ${{ github.workspace }}/apk
