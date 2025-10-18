@@ -8,11 +8,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout project with submodules # 名字改了一下，更清晰
+      - name: Checkout project # 1. 只 checkout 主项目
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: 'recursive' # <-- 关键修正点：添加这一行来拉取子模块
+          # 注意：这里我们移除了 submodules: 'recursive'
+
+      - name: Fix Submodule URL # 2. 强行修正错误的 URL
+        run: |
+          git config -f .gitmodules submodule.xwalk_core_library.url https://github.com/CatVodOpen/xwalk_core_library.git
+
+      - name: Init Submodules # 3. 手动拉取所有子模块
+        run: |
+          git submodule sync
+          git submodule update --init --recursive
 
       - name: Set up Java
         uses: actions/setup-java@v4
